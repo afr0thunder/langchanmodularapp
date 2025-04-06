@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.env
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# SQLite database
+*.db
+*.sqlite
+
+# FAISS vector index storage
+faiss_index/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Logs and temp
+*.log
+*.tmp
