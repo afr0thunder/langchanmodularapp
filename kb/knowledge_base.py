@@ -9,12 +9,19 @@ class KnowledgeBase:
     def __init__(self, agent_name: str):
         self.agent_name = agent_name
         self.index_dir = os.path.join("faiss_index", agent_name)
-        self.embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        self.embedder = HuggingFaceEmbeddings(
+            model_name="all-MiniLM-L6-v2",
+            model_kwargs={"device": "cuda"}  # Enable GPU
+        )
         self.vectorstore = self._load_or_create_index()
 
     def _load_or_create_index(self):
         if os.path.exists(self.index_dir):
-            return FAISS.load_local(self.index_dir, self.embedder)
+            return FAISS.load_local(
+                self.index_dir,
+                self.embedder,
+                allow_dangerous_deserialization=True
+            )
         else:
             return None
 

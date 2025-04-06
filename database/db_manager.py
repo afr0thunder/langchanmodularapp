@@ -56,3 +56,40 @@ class DBManager:
         if row:
             return {"name": row[0], "base_prompt": row[1], "llm_choice": row[2]}
         else:
+            raise ValueError(f"Agent '{name}' not found.")
+
+    def list_agents(self) -> List[str]:
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT name FROM agents')
+        return [row[0] for row in cursor.fetchall()]
+
+    def delete_agent(self, name: str):
+        cursor = self.conn.cursor()
+        cursor.execute('DELETE FROM agents WHERE name = ?', (name,))
+        self.conn.commit()
+
+    # Chat methods
+    def save_chat(self, agent_name: str, user_msg: str, agent_response: str):
+        cursor = self.conn.cursor()
+        cursor.execute(
+            'INSERT INTO chats (agent_name, user_msg, agent_response) VALUES (?, ?, ?)',
+            (agent_name, user_msg, agent_response)
+        )
+        self.conn.commit()
+
+    def load_chat_history(self, agent_name: str) -> List[Tuple[str, str]]:
+        cursor = self.conn.cursor()
+        cursor.execute(
+            'SELECT user_msg, agent_response FROM chats WHERE agent_name = ? ORDER BY timestamp ASC',
+            (agent_name,)
+        )
+        return cursor.fetchall()
+
+    # Test methods
+    def save_test_result(self, agent_name: str, subject: str, questions: str, answers: str, score: float):
+        cursor = self.conn.cursor()
+        cursor.execute(
+            'INSERT INTO tests (agent_name, subject, questions, answers, score) VALUES (?, ?, ?, ?, ?)',
+            (agent_name, subject, questions, answers, score)
+        )
+        self.conn.commit()
