@@ -1,0 +1,11 @@
+# Data Flow
+
+User Message
+   ↓
+Tkinter GUI
+   ↓
+ChatHandler → AgentManager → Langchain Agent + FAISS (KnowledgeBase)
+   ↓
+LLM Response
+   ↓
+GUI + DBManager (save chat)

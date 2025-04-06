@@ -1,0 +1,18 @@
+langchanmodularapp/
+├── agents/                 # Logic for managing and storing agents
+│   └── agent_manager.py
+├── chat/                   # Chat handling
+│   └── chat_handler.py
+├── database/               # SQLite management
+│   └── db_manager.py
+├── kb/                     # Knowledge base ingestion/search
+│   └── knowledge_base.py
+├── test_engine/            # Test generation and grading
+│   └── test_module.py
+├── ui/                     # GUI interface (Tkinter)
+│   └── app_ui.py
+├── utils/                  # Helper functions, constants
+│   └── helpers.py
+├── main.py                 # Entry point to run the app
+├── requirements.txt
+└── README.md
