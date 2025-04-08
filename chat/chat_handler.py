@@ -1,3 +1,5 @@
+# chat/chat_handler.py
+
 from datetime import datetime
 import sqlite3
 import uuid
@@ -6,9 +8,9 @@ import os
 class ChatHandler:
     def __init__(self, agent, db_path="chat_history.db"):
         self.agent = agent
-        self.history = []
+        self.history = []  # In-memory cache
         self.db_path = db_path
-        self.agent_id = agent.name
+        self.agent_id = agent.name  # Assumes each agent has a unique name
         self._init_db()
         self._load_history_from_db()
 

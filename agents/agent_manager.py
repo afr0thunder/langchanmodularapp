@@ -33,6 +33,9 @@ class Agent:
 
         return LLMChain(prompt=prompt, llm=llm)
 
+    def respond(self, user_input, context=None):
+        return self.chain.run({"input": user_input, "context": context})
+
     def run(self, user_input: str) -> str:
         context = self.vector_store.query(user_input)
         return self.chain.run({"input": user_input, "context": context})
