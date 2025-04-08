@@ -1,44 +1,52 @@
-import tkinter as tk
-from tkinter import ttk, scrolledtext
+from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QComboBox, QPushButton, QLineEdit, QTextBrowser
+import sys
+import datetime
 
-class ChatInterface:
-    def __init__(self, master, agent_manager):
-        self.master = master
-        self.master.title("LangChain Modular AI Chat App")
+class ChatInterface(QWidget):
+    def __init__(self, agent_manager):
+        super().__init__()
+        self.setWindowTitle("LangChain Modular AI Chat App")
+        self.resize(800, 600)
 
         self.agent_manager = agent_manager
         self.agent_names = self.agent_manager.list_agents()
         self.chat_handlers = {}
 
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
         self._build_widgets()
         self._set_active_agent(self.agent_names[0])
 
     def _build_widgets(self):
-        # Agent selector
-        self.agent_var = tk.StringVar()
-        self.agent_dropdown = ttk.Combobox(self.master, textvariable=self.agent_var, values=self.agent_names)
-        self.agent_dropdown.bind("<<ComboboxSelected>>", self._on_agent_change)
-        self.agent_dropdown.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        # Agent selector dropdown
+        self.agent_dropdown = QComboBox()
+        self.agent_dropdown.addItems(self.agent_names)
+        self.agent_dropdown.currentIndexChanged.connect(self._on_agent_change)
+        self.layout.addWidget(self.agent_dropdown)
 
         # Clear chat button
-        self.clear_btn = ttk.Button(self.master, text="Clear Chat", command=self._clear_chat)
-        self.clear_btn.grid(row=0, column=1, padx=10, pady=10)
+        self.clear_btn = QPushButton("Clear Chat")
+        self.clear_btn.clicked.connect(self._clear_chat)
+        self.layout.addWidget(self.clear_btn)
 
-        # Chat display
-        self.chat_display = scrolledtext.ScrolledText(self.master, state='disabled', wrap='word', width=80, height=20)
-        self.chat_display.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        # Chat display using QtWebEngine (MathJax-compatible)
+        self.chat_display = QtWebEngineWidgets.QWebEngineView()
+        self.layout.addWidget(self.chat_display, stretch=1)
 
-        # User input
-        self.user_input = tk.Entry(self.master, width=70)
-        self.user_input.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
-        self.user_input.bind("<Return>", lambda event: self._send_message())
+        # User input field
+        self.user_input = QLineEdit()
+        self.user_input.returnPressed.connect(self._send_message)
+        self.layout.addWidget(self.user_input)
 
         # Send button
-        self.send_btn = ttk.Button(self.master, text="Send", command=self._send_message)
-        self.send_btn.grid(row=2, column=1, padx=10, pady=10)
+        self.send_btn = QPushButton("Send")
+        self.send_btn.clicked.connect(self._send_message)
+        self.layout.addWidget(self.send_btn)
 
     def _set_active_agent(self, agent_name):
-        self.agent_var.set(agent_name)
+        self.agent_dropdown.setCurrentText(agent_name)
         agent = self.agent_manager.get_agent(agent_name)
 
         if agent_name not in self.chat_handlers:
@@ -48,22 +56,39 @@ class ChatInterface:
         self.handler = self.chat_handlers[agent_name]
         self._refresh_display()
 
-    def _on_agent_change(self, event):
-        self._set_active_agent(self.agent_var.get())
+    def _on_agent_change(self):
+        self._set_active_agent(self.agent_dropdown.currentText())
 
     def _refresh_display(self):
-        self.chat_display.config(state='normal')
-        self.chat_display.delete(1.0, tk.END)
+        html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <style>
+            body { font-family: sans-serif; padding: 10px; }
+            .msg { margin-bottom: 20px; }
+            .user { font-weight: bold; color: #007acc; }
+            .agent { font-weight: bold; color: #009900; }
+        </style>
+        </head>
+        <body>
+        """
         for msg in self.handler.get_history():
-            self.chat_display.insert(tk.END, f"[{msg['timestamp']}] {msg['role'].capitalize()}: {msg['content']}\n\n")
-        self.chat_display.config(state='disabled')
-        self.chat_display.yview(tk.END)
+            role = msg['role'].lower()
+            content = msg['content'].replace("\n", "<br>")
+            timestamp = msg['timestamp']
+            html += f'<div class="msg"><span class="{role}">[{timestamp}] {role.capitalize()}:</span><br>{content}</div>'
+
+        html += "</body></html>"
+        self.chat_display.setHtml(html)
 
     def _send_message(self):
-        user_input = self.user_input.get().strip()
+        user_input = self.user_input.text().strip()
         if user_input:
-            response = self.handler.send_message(user_input)
-            self.user_input.delete(0, tk.END)
+            self.handler.send_message(user_input)
+            self.user_input.clear()
             self._refresh_display()
 
     def _clear_chat(self):
@@ -72,6 +97,7 @@ class ChatInterface:
 
 
 def launch_interface(agent_manager):
-    root = tk.Tk()
-    app = ChatInterface(root, agent_manager)
-    root.mainloop()
+    app = QApplication(sys.argv)
+    window = ChatInterface(agent_manager)
+    window.show()
+    sys.exit(app.exec_())
