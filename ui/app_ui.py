@@ -106,6 +106,21 @@ class ChatInterface(QWidget):
         self.handler.clear_history()
         self._refresh_display()
 
+    def _open_new_agent_dialog(self):
+        dialog = AgentEditor(self.agent_manager, self)
+        if dialog.exec_():
+            self.agent_names = self.agent_manager.list_agents()
+            self.agent_dropdown.clear()
+            self.agent_dropdown.addItems(self.agent_names)
+
+    def _open_edit_agent_dialog(self):
+        name = self.agent_dropdown.currentText()
+        dialog = AgentEditor(self.agent_manager, self, edit_mode=True, agent_name=name)
+        if dialog.exec_():
+            self.agent_names = self.agent_manager.list_agents()
+            self.agent_dropdown.clear()
+            self.agent_dropdown.addItems(self.agent_names)
+
 
 def launch_interface(agent_manager):
     app = QApplication(sys.argv)
@@ -113,17 +128,4 @@ def launch_interface(agent_manager):
     window.show()
     sys.exit(app.exec_())
 
-def _open_new_agent_dialog(self):
-    dialog = AgentEditor(self.agent_manager, self.master)
-    if dialog.exec_():
-        self.agent_names = self.agent_manager.list_agents()
-        self.agent_dropdown.clear()
-        self.agent_dropdown.addItems(self.agent_names)
 
-def _open_edit_agent_dialog(self):
-    name = self.agent_var.get()
-    dialog = AgentEditor(self.agent_manager, self.master, edit_mode=True, agent_name=name)
-    if dialog.exec_():
-        self.agent_names = self.agent_manager.list_agents()
-        self.agent_dropdown.clear()
-        self.agent_dropdown.addItems(self.agent_names)
