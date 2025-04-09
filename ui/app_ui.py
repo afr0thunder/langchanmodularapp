@@ -46,10 +46,15 @@ class ChatInterface(QWidget):
         self.send_btn.clicked.connect(self._send_message)
         self.layout.addWidget(self.send_btn)
 
-        # Agent Editor
+        # Create agent button
         self.new_agent_btn = QPushButton("New Agent")
         self.new_agent_btn.clicked.connect(self._open_new_agent_dialog)
         self.layout.addWidget(self.new_agent_btn)
+
+        # Edit Agent Buttons
+        self.edit_btn = QPushButton("Edit Agent")
+        self.edit_btn.clicked.connect(self._open_edit_agent_dialog)
+        self.layout.addWidget(self.edit_btn)
 
     def _set_active_agent(self, agent_name):
         self.agent_dropdown.setCurrentText(agent_name)
@@ -110,6 +115,14 @@ def launch_interface(agent_manager):
 
 def _open_new_agent_dialog(self):
     dialog = AgentEditor(self.agent_manager, self.master)
+    if dialog.exec_():
+        self.agent_names = self.agent_manager.list_agents()
+        self.agent_dropdown.clear()
+        self.agent_dropdown.addItems(self.agent_names)
+
+def _open_edit_agent_dialog(self):
+    name = self.agent_var.get()
+    dialog = AgentEditor(self.agent_manager, self.master, edit_mode=True, agent_name=name)
     if dialog.exec_():
         self.agent_names = self.agent_manager.list_agents()
         self.agent_dropdown.clear()
