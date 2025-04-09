@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QComboBox, QPushButton, QLineEdit, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QComboBox, QPushButton, QLineEdit
 import sys
-import datetime
 from ui.agent_editor import AgentEditor
 
 class ChatInterface(QWidget):
@@ -21,37 +20,30 @@ class ChatInterface(QWidget):
         self._set_active_agent(self.agent_names[0])
 
     def _build_widgets(self):
-        # Agent selector dropdown
         self.agent_dropdown = QComboBox()
         self.agent_dropdown.addItems(self.agent_names)
         self.agent_dropdown.currentIndexChanged.connect(self._on_agent_change)
         self.layout.addWidget(self.agent_dropdown)
 
-        # Clear chat button
         self.clear_btn = QPushButton("Clear Chat")
         self.clear_btn.clicked.connect(self._clear_chat)
         self.layout.addWidget(self.clear_btn)
 
-        # Chat display using QtWebEngine (MathJax-compatible)
         self.chat_display = QtWebEngineWidgets.QWebEngineView()
         self.layout.addWidget(self.chat_display, stretch=1)
 
-        # User input field
         self.user_input = QLineEdit()
         self.user_input.returnPressed.connect(self._send_message)
         self.layout.addWidget(self.user_input)
 
-        # Send button
         self.send_btn = QPushButton("Send")
         self.send_btn.clicked.connect(self._send_message)
         self.layout.addWidget(self.send_btn)
 
-        # Create agent button
         self.new_agent_btn = QPushButton("New Agent")
         self.new_agent_btn.clicked.connect(self._open_new_agent_dialog)
         self.layout.addWidget(self.new_agent_btn)
 
-        # Edit Agent Buttons
         self.edit_btn = QPushButton("Edit Agent")
         self.edit_btn.clicked.connect(self._open_edit_agent_dialog)
         self.layout.addWidget(self.edit_btn)
@@ -127,5 +119,3 @@ def launch_interface(agent_manager):
     window = ChatInterface(agent_manager)
     window.show()
     sys.exit(app.exec_())
-
-

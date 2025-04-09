@@ -47,8 +47,10 @@ class AgentManager:
         if not os.path.exists(AGENT_DATA_DIR):
             os.makedirs(AGENT_DATA_DIR)
 
-    def create_agent(self, name: str, base_prompt: str, llm_choice: str) -> None:
+    def create_agent(self, name: str, base_prompt: str, llm_choice: str, ingest_path: str=None) -> None:
         self.db.save_agent(name, base_prompt, llm_choice)
+        if ingest_path:
+            vector_store.ingest_docs([ingest_path])
 
     def get_agent(self, name: str) -> Agent:
         config = self.db.load_agent(name)
@@ -59,3 +61,10 @@ class AgentManager:
 
     def delete_agent(self, name: str) -> None:
         self.db.delete_agent(name)
+
+    def get_agent_config(self, agent_name):
+        config_path = os.path.join(self.agent_storage, agent_name, "config.json")
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"No config found for agent {agent_name}")
+        with open(config_path, "r") as f:
+            return json.load(f)
