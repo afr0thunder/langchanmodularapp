@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QComboBox, QPushButton, QLineEdit, QTextBrowser
 import sys
 import datetime
+from ui.agent_editor import AgentEditor
 
 class ChatInterface(QWidget):
     def __init__(self, agent_manager):
@@ -44,6 +45,11 @@ class ChatInterface(QWidget):
         self.send_btn = QPushButton("Send")
         self.send_btn.clicked.connect(self._send_message)
         self.layout.addWidget(self.send_btn)
+
+        # Agent Editor
+        self.new_agent_btn = QPushButton("New Agent")
+        self.new_agent_btn.clicked.connect(self._open_new_agent_dialog)
+        self.layout.addWidget(self.new_agent_btn)
 
     def _set_active_agent(self, agent_name):
         self.agent_dropdown.setCurrentText(agent_name)
@@ -101,3 +107,10 @@ def launch_interface(agent_manager):
     window = ChatInterface(agent_manager)
     window.show()
     sys.exit(app.exec_())
+
+def _open_new_agent_dialog(self):
+    dialog = AgentEditor(self.agent_manager, self.master)
+    if dialog.exec_():
+        self.agent_names = self.agent_manager.list_agents()
+        self.agent_dropdown.clear()
+        self.agent_dropdown.addItems(self.agent_names)
