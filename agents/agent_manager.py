@@ -42,15 +42,33 @@ class Agent:
 
 
 class AgentManager:
-    def __init__(self):
+    def __init__(self, agent_storage: str = AGENT_DATA_DIR):
+        print("Ingesting from:", agent_storage)
+        print("Files found:", os.listdir(agent_storage))
         self.db = DBManager()
-        if not os.path.exists(AGENT_DATA_DIR):
-            os.makedirs(AGENT_DATA_DIR)
+        self.agent_storage = agent_storage
+        if not os.path.exists(agent_storage):
+            os.makedirs(agent_storage)
 
     def create_agent(self, name: str, base_prompt: str, llm_choice: str, ingest_path: str=None) -> None:
         self.db.save_agent(name, base_prompt, llm_choice)
-        if ingest_path:
-            vector_store.ingest_docs([ingest_path])
+
+        if ingest_path and os.path.isdir(ingest_path):
+            valid_exts = ('.txt', '.pdf', '.md')
+            file_paths = [
+                os.path.join(ingest_path, f)
+                for f in os.listdir(ingest_path)
+                if f.lower().endswith(valid_exts)
+            ]
+
+            if file_paths:
+                kb = KnowledgeBase(agent_name=name)
+                print(f"Ingesting {len(file_paths)} documents...")
+                kb.ingest_docs(file_paths)
+            else:
+                print("No supported files to ingest.")
+        elif ingest_path:
+            print(f"Unsupported ingest path: {ingest_path}")
 
     def get_agent(self, name: str) -> Agent:
         config = self.db.load_agent(name)
@@ -62,9 +80,5 @@ class AgentManager:
     def delete_agent(self, name: str) -> None:
         self.db.delete_agent(name)
 
-    def get_agent_config(self, agent_name):
-        config_path = os.path.join(self.agent_storage, agent_name, "config.json")
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"No config found for agent {agent_name}")
-        with open(config_path, "r") as f:
-            return json.load(f)
+    def update_agent_prompt(self, name: str, new_prompt: str):
+        self.db.update_agent_prompt(name, new_prompt)

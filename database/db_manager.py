@@ -93,3 +93,11 @@ class DBManager:
             (agent_name, subject, questions, answers, score)
         )
         self.conn.commit()
+
+    def update_agent_prompt(self, name: str, new_prompt: str):
+        cursor = self.conn.cursor()
+        cursor.execute(
+            'UPDATE agents SET base_prompt = ? WHERE name = ?',
+            (new_prompt, name)
+        )
+        self.conn.commit()

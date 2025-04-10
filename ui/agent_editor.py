@@ -83,10 +83,12 @@ class AgentEditor(QDialog):
             QMessageBox.information(self, "Agent Created", f"Agent '{name}' successfully created.")
             self.accept()
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             QMessageBox.critical(self, "Error", f"Failed to create agent: {str(e)}")
 
     def _load_agent(self, agent_name):
-        agent_config = self.agent_manager.get_agent_config(agent_name)
+        agent_config = self.agent_manager.db.load_agent(agent_name)
         self.name_input.setText(agent_name)
         self.name_input.setDisabled(True)
         self.prompt_input.setText(agent_config.get("base_prompt", ""))

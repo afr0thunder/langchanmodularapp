@@ -26,22 +26,27 @@ class KnowledgeBase:
             return None
 
     def ingest_docs(self, doc_paths: List[str]):
+        print(f"Ingesting from: {doc_paths}")
+
         all_docs = []
-        for path in doc_paths:
-            ext = os.path.splitext(path)[1].lower()
-            if ext == ".txt":
+        total = len(doc_paths)
+        for i, path in enumerate(doc_paths, 1):
+            try:
                 loader = TextLoader(path)
-            elif ext == ".pdf":
-                loader = PyPDFLoader(path)
-            else:
-                print(f"Unsupported file format: {path}")
-                continue
-            docs = loader.load()
-            all_docs.extend(docs)
+                docs = loader.load()
+                print(f"[{i}/{total}] Loaded {len(docs)} docs from {os.path.basename(path)}")
+                all_docs.extend(docs)
+            except Exception as e:
+                print(f"[{i}/{total}] Failed to load {path}: {e}")
+
+        if not all_docs:
+            print("No documents loaded; skipping FAISS index creation.")
+            return
 
         # Split long docs into chunks
         splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         split_docs = splitter.split_documents(all_docs)
+        print(f"Split into {len(split_docs)} chunks. Creating FAISS index...")
 
         # Create or extend FAISS index
         if self.vectorstore:
@@ -51,6 +56,7 @@ class KnowledgeBase:
 
         # Save index
         self.vectorstore.save_local(self.index_dir)
+        print(f"FAISS index saved to {self.index_dir}")
 
     def query(self, query: str, k: int = 3) -> str:
         if not self.vectorstore:

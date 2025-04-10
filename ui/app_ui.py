@@ -48,19 +48,25 @@ class ChatInterface(QWidget):
         self.edit_btn.clicked.connect(self._open_edit_agent_dialog)
         self.layout.addWidget(self.edit_btn)
 
+        self.delete_btn = QPushButton("Delete Agent")
+        self.delete_btn.clicked.connect(self._delete_agent)
+        self.layout.addWidget(self.delete_btn)
+
     def _set_active_agent(self, agent_name):
+        if not agent_name or agent_name not in self.agent_names:
+            return
         self.agent_dropdown.setCurrentText(agent_name)
         agent = self.agent_manager.get_agent(agent_name)
-
         if agent_name not in self.chat_handlers:
             from chat.chat_handler import ChatHandler
             self.chat_handlers[agent_name] = ChatHandler(agent)
-
         self.handler = self.chat_handlers[agent_name]
         self._refresh_display()
 
     def _on_agent_change(self):
-        self._set_active_agent(self.agent_dropdown.currentText())
+        selected = self.agent_dropdown.currentText()
+        if selected:
+            self._set_active_agent(selected)
 
     def _refresh_display(self):
         html = """
@@ -105,6 +111,9 @@ class ChatInterface(QWidget):
             self.agent_dropdown.clear()
             self.agent_dropdown.addItems(self.agent_names)
 
+            if self.agent_names:
+                self._set_active_agent(self.agent_names[-1])
+
     def _open_edit_agent_dialog(self):
         name = self.agent_dropdown.currentText()
         dialog = AgentEditor(self.agent_manager, self, edit_mode=True, agent_name=name)
@@ -112,6 +121,23 @@ class ChatInterface(QWidget):
             self.agent_names = self.agent_manager.list_agents()
             self.agent_dropdown.clear()
             self.agent_dropdown.addItems(self.agent_names)
+
+    def _delete_agent(self):
+        name = self.agent_dropdown.currentText()
+        if not name:
+            return
+        confirm = QtWidgets.QMessageBox.question(self, "Confirm Delete",
+                                                 f"Are you sure you want to delete '{name}'?",
+                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if confirm == QtWidgets.QMessageBox.Yes:
+            self.agent_manager.delete_agent(name)
+            self.agent_names = self.agent_manager.list_agents()
+            self.agent_dropdown.clear()
+            self.agent_dropdown.addItems(self.agent_names)
+            if self.agent_names:
+                self._set_active_agent(self.agent_names[0])
+            else:
+                self.chat_display.setHtml("")
 
 
 def launch_interface(agent_manager):
