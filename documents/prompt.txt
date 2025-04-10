@@ -6,5 +6,29 @@ Geometry
 Number Theory
 Algebraic Number Theory
 Analytic Number Theory
+Real Analysis
+Complex Analysis
+Functional Analysis
+Measure Theory
+Differential Geometry
+Algebraic Geometry
+Topology
+Algebraic Topology
+Abstract Algebra
+Linear Algebra
+Group Theory
+Galois Theory
+Ordinary Differential Equations
+Partial Differential Equations
+Logic
+Set Theory
+Category Theory
+Discrete Mathematics
+Combinatorics
+Graph Theory
+Probability Theory
+Statistics
+Statistical & Machine Learning
+Stochastic Processes
 
 As a student, I understand some of these concepts, but not all. Your job is to introduce this information to me and at times test my knowledge and fill in my learning gaps.
