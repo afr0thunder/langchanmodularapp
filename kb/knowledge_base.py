@@ -3,6 +3,7 @@ from typing import List
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
+from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 class KnowledgeBase:
@@ -25,19 +26,33 @@ class KnowledgeBase:
         else:
             return None
 
-    def ingest_docs(self, doc_paths: List[str]):
-        print(f"Ingesting from: {doc_paths}")
+    def _load_single_file(self, file_path: str) -> List[Document]:
+        try:
+            ext = os.path.splitext(file_path)[1].lower()
+            if ext == ".pdf":
+                loader = PyPDFLoader(file_path)
+            elif ext == ".txt":
+                loader = TextLoader(file_path)
+            else:
+                raise ValueError(f"Unsupported file format: {file_path}")
+            return loader.load()
+        except Exception as e:
+            print(f"[ERROR] Failed to load {file_path}: {e}")
+            return []
 
+    def ingest_docs(self, doc_paths: List[str]):
+        print(f"Ingesting {len(doc_paths)} documents...")
         all_docs = []
-        total = len(doc_paths)
+
         for i, path in enumerate(doc_paths, 1):
-            try:
-                loader = TextLoader(path)
-                docs = loader.load()
-                print(f"[{i}/{total}] Loaded {len(docs)} docs from {os.path.basename(path)}")
-                all_docs.extend(docs)
-            except Exception as e:
-                print(f"[{i}/{total}] Failed to load {path}: {e}")
+            norm_path = os.path.normpath(path)
+            print(f"[{i}/{len(doc_paths)}] Processing {os.path.basename(norm_path)}...")
+            docs = self._load_single_file(norm_path)
+            if docs:
+                print(f"  ✔ Loaded {len(docs)} chunks")
+            else:
+                print(f"  ✘ Skipped (no loadable content)")
+            all_docs.extend(docs)
 
         if not all_docs:
             print("No documents loaded; skipping FAISS index creation.")
